@@ -17,6 +17,7 @@
 package androidx.build
 
 import androidx.build.AndroidXRootPlugin.Companion.PROJECT_OR_ARTIFACT_EXT_NAME
+import androidx.build.ftl.FirebaseTestLabHelper
 import androidx.build.gradle.isRoot
 import groovy.xml.DOMBuilder
 import org.gradle.api.GradleException
@@ -67,12 +68,16 @@ class AndroidXPlaygroundRootPlugin : Plugin<Project> {
         config = PlaygroundProperties.load(rootProject)
         repos = PlaygroundRepositories(config)
         rootProject.repositories.addPlaygroundRepositories()
+        val ftlUtilities = FirebaseTestLabHelper(target)
         rootProject.subprojects {
-            configureSubProject(it)
+            configureSubProject(it, ftlUtilities)
         }
     }
 
-    private fun configureSubProject(project: Project) {
+    private fun configureSubProject(
+        project: Project,
+        firebaseTestLabHelper: FirebaseTestLabHelper
+    ) {
         project.repositories.addPlaygroundRepositories()
         project.extra.set(PROJECT_OR_ARTIFACT_EXT_NAME, projectOrArtifactClosure)
         project.configurations.all { configuration ->
@@ -80,6 +85,7 @@ class AndroidXPlaygroundRootPlugin : Plugin<Project> {
                 substitution.replaceIfSnapshot()
             }
         }
+        firebaseTestLabHelper.setupFTL(project)
     }
 
     /**
